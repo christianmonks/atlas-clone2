@@ -1,9 +1,9 @@
 import json
 import streamlit as st
 import plotly.express as px
-from scripts.constants import *
+from constants import *
 import streamlit_vertical_slider as svs
-from scripts.matched_market import MatchedMarketScoring
+from matched_market import MatchedMarketScoring
 
 def render_market_ranking():
     """

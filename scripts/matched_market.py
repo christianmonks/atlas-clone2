@@ -6,7 +6,7 @@ import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
-from constants import *
+from scripts.constants import *
 from statsmodels.stats.power import TTestIndPower
 
 class MatchedMarketScoring:
@@ -282,103 +282,46 @@ class MatchedMarketScoring:
 
             # Perform power analysis for each lift percentage
             for lift in self.power_analysis_parameters.get('Lifts'):
-                # Calculate the minimum lift as a percentage of the mean KPI
-                min_lift_percentage = lift / 100
+                # Convert lift from percentage to decimal
+                lift_decimal = lift / 100.0
+                
+                # Calculate effect size
+                effect_size = (kpi_mean * lift_decimal) / kpi_std
 
-                # Calculate the effect size for the t-test
-                effect_size = min_lift_percentage * kpi_mean / kpi_std
-
-                # Initialize power analysis using a t-test for independent samples
-                analysis = TTestIndPower()
-
-                # Solve for the required sample size given the effect size, power, and alpha
-                obs = analysis.solve_power(
-                    effect_size,
+                # Initialize TTestIndPower
+                power_analysis = TTestIndPower()
+                
+                # Calculate the required sample size for the specified power, alpha, and effect size
+                sample_size = power_analysis.solve_power(
+                    effect_size=effect_size,
                     power=self.power_analysis_parameters.get('Power'),
                     alpha=self.power_analysis_parameters.get('Alpha'),
-                    ratio=1, #ratio of test to control markets
-                    alternative='two-sided',
+                    alternative='two-sided'
                 )
-
-                # Calculate the required budget based on sample size, KPI mean, and lift
-                budget = obs * kpi_mean * min_lift_percentage * cpik
-
-                # Estimate the running time in weeks (proportional to sample size)
-                running_time = 2 * obs / len(geo_input)
-
-                # Append the results for the current lift to the results list
-                # Date granularity can be Daily or Weekly
-                if self.date_granularity == 'Weekly':
-                    results.append({
-                        'Number of Test Markets': int(len(geo_input) / 2),
-                        'Budget': int(budget),
-                        'Running Time (Weeks)': math.ceil(running_time),
-                        'Test Markets': ','.join(map(str, [x for x in geo_input if x in test_market])),
-                        'Control Markets': ','.join(map(str, [x for x in geo_input if x in control_market]))
-                    })
-                elif self.date_granularity == 'Daily':
-                    results.append({
-                        'Number of Test Markets': int(len(geo_input) / 2),
-                        'Budget': int(budget),
-                        'Running Time (Weeks)': math.ceil(running_time / 7),
-                        'Test Markets': ','.join(map(str, [x for x in geo_input if x in test_market])),
-                        'Control Markets': ','.join(map(str, [x for x in geo_input if x in control_market]))
-                    })
-
-        # Convert the results list into a pandas DataFrame
-        df_results = pd.DataFrame(results)
-        filtered_rows = df_results[(df_results['Budget'] < budget_limit)] \
-            .sort_values(by=['Running Time (Weeks)', 'Budget'])
-
-        result_dict = {
-            'All Results': df_results,
-            'By Duration': filtered_rows,
+                
+                # Round up to the nearest whole number
+                sample_size = math.ceil(sample_size)
+                
+                # Calculate the required budget based on CPIK and KPI
+                budget_required = sample_size * kpi_mean * lift_decimal * cpik
+                
+                # Calculate the test duration in days based on the sample size and mean KPI
+                if self.date_granularity == 'Daily':
+                    duration = int(sample_size / len(test_market))
+                else:
+                    # For weekly granularity, multiply by 7
+                    duration = int(sample_size / len(test_market)) * 7
+                
+                # Append the results to the results list
+                results.append({
+                    'Lift': f'{lift}%',
+                    'Markets': len(test_market),
+                    'Sample Size': sample_size,
+                    'Duration (Days)': duration,
+                    'Budget': budget_required
+                })
+        
+        # Return the results in a structured format
+        return {
+            'By Duration': pd.DataFrame(results)
         }
-        return result_dict
-
-# def generate_dma_data(
-#         dma_census_data: dict,
-#         included_datasets=[],
-# ):
-#     """
-#     Generate DMA output based on census data.
-#
-#     :return: DataFrame containing DMA output
-#     """
-#     dma_data = copy.deepcopy(
-#         dma_census_data
-#     )
-#
-#     dataframes = {
-#         k: v for k, v in dma_data.items() if k != 'CPM DMA'
-#     }
-#
-#     if len(included_datasets) > 0:
-#         dataframes = {
-#             k: v for k, v in dataframes.items() if k in included_datasets
-#         }
-#
-#     base = dma_data.get('CPM DMA')
-#     for n, df in dataframes.items():
-#         print(f'Adding in DataFrame: {n}')
-#         nc = n.replace("DMA", "").strip()
-#         if 'Median' not in n:
-#             df.columns = [f"{k}_{nc.lower().replace(' ','_')}" if k not in [
-#                 DMA_CODE, DMA_NAME
-#             ] else k for k in list(df)]
-#         else:
-#             df = df.rename(columns={'median': nc})
-#         base = base.merge(
-#             df, on=[DMA_CODE, DMA_NAME], how='left'
-#         )
-#     return base
-
-def calculate_tier(pct_rank, num_tiers):
-    interval = 1 / num_tiers
-    thresholds = [interval * i for i in range(1, num_tiers)]
-    tiers = [f"Tier {i}" for i in range(num_tiers, 0, -1)]
-
-    for threshold, tier in zip(thresholds, tiers):
-        if pct_rank <= threshold:
-            return tier
-    return tiers[-1]

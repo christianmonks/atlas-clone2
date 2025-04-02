@@ -1,13 +1,9 @@
 import os
 import streamlit as st
-import sys
-
-# Add the current directory to the path so we can import from utils and tabs directly
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 st.set_page_config(page_title="Atlas", layout="wide")
-from utils import add_image, check_password
-from tabs import render_tabs
+from attached_assets.utils import add_image, check_password
+from attached_assets.tabs import render_tabs
 
 # Set page configuration
 # Manage page visibility with st_pages

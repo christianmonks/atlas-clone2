@@ -4,8 +4,8 @@ import os
 import regex as re
 from os.path import join
 from pandas.api.types import is_numeric_dtype
-from scripts.constants import *
-from scripts.matched_market import calculate_tier, MatchedMarketScoring
+from constants import *
+from matched_market import calculate_tier, MatchedMarketScoring
 
 def render_command_center():
     """

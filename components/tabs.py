@@ -1,10 +1,10 @@
 import streamlit as st
-from product_overview import render_product_overview
-from command_center import render_command_center
-from market_ranking import render_market_ranking
-from matched_markets import render_matched_markets
-from product_quick_start import render_product_quick_start
-from power_analysis import render_power_analysis
+from components.product_overview import render_product_overview
+from components.command_center import render_command_center
+from components.market_ranking import render_market_ranking
+from components.matched_markets import render_matched_markets
+from components.product_quick_start import render_product_quick_start
+from components.power_analysis import render_power_analysis
 
 def render_tabs():
     """

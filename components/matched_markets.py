@@ -2,10 +2,8 @@ import streamlit as st
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 import plotly.express as px
-from constants import *
+from scripts.constants import *
 from numerize import numerize
-
-
 
 def render_matched_markets():
     """
@@ -14,11 +12,6 @@ def render_matched_markets():
     This function allows users to select tiers, exclude markets, and specify test markets for
     identifying similar matched markets. It aggregates key performance indicators (KPIs) for
     test and control markets and visualizes the matched market results.
-
-    Functionality:
-    - Users can filter markets based on tiers and specific market selections.
-    - The function calculates matched market pairs based on similarity indices.
-    - It generates scatter and line/bar plots for visualizing KPIs across matched markets.
     """
 
     # Extract required session state values
@@ -301,5 +294,3 @@ def render_matched_markets():
                     )
                     fig_comp.update_layout(width=800, height=500)
                     st.plotly_chart(fig_comp, theme="streamlit", use_container_width=True)
-
-                   
