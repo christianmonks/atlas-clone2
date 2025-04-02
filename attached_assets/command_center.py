@@ -18,6 +18,10 @@ def render_command_center():
     cd = os.getcwd()
     kpi_df, client_df, agg_kpi_df, audience_df, df = None, None, None, None, None
     client_columns, audience_columns = [], []
+    audience_filter = None
+    market_level = None
+    date_column = None
+    rename_dict = {}
 
     # Expander for Market Level Selection
     with st.expander(label="**Market Level Selection**", expanded=True):
