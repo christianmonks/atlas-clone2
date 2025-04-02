@@ -1,5 +1,5 @@
 import streamlit as st
-from matched_market import MatchedMarketScoring
+from scripts.matched_market import MatchedMarketScoring
 
 def render_power_analysis():
 

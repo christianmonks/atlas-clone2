@@ -6,7 +6,7 @@ import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
-from attached_assets.constants import *
+from scripts.constants import *
 from statsmodels.stats.power import TTestIndPower
 
 class MatchedMarketScoring:

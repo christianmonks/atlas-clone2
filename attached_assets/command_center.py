@@ -4,8 +4,8 @@ import os
 import regex as re
 from os.path import join
 from pandas.api.types import is_numeric_dtype
-from attached_assets.constants import *
-from attached_assets.matched_market import calculate_tier, MatchedMarketScoring
+from scripts.constants import *
+from scripts.matched_market import calculate_tier, MatchedMarketScoring
 
 def render_command_center():
     """
@@ -18,10 +18,6 @@ def render_command_center():
     cd = os.getcwd()
     kpi_df, client_df, agg_kpi_df, audience_df, df = None, None, None, None, None
     client_columns, audience_columns = [], []
-    audience_filter = None
-    market_level = None
-    date_column = None
-    rename_dict = {}
 
     # Expander for Market Level Selection
     with st.expander(label="**Market Level Selection**", expanded=True):

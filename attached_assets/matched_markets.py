@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 import plotly.express as px
-from constants import *
+from scripts.constants import *
 from numerize import numerize
 
 
