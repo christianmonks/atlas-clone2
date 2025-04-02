@@ -2,8 +2,8 @@ import os
 import streamlit as st
 
 st.set_page_config(page_title="Atlas", layout="wide")
-from attached_assets.utils import add_image, check_password
-from attached_assets.tabs import render_tabs
+from scripts.utils import add_image, check_password
+from components.tabs import render_tabs
 
 # Set page configuration
 # Manage page visibility with st_pages
