@@ -1,9 +1,14 @@
 import os
+import sys
 import streamlit as st
 
+# Add the current directory and attached_assets to the Python path
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.join(os.path.abspath('.'), 'attached_assets'))
+
 st.set_page_config(page_title="Atlas", layout="wide")
-from scripts.utils import add_image, check_password
-from components.tabs import render_tabs
+from attached_assets.utils import add_image, check_password
+from attached_assets.tabs import render_tabs
 
 # Set page configuration
 # Manage page visibility with st_pages
