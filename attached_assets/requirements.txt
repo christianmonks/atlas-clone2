@@ -1,0 +1,11 @@
+streamlit==1.35.0
+st-pages==0.4.5
+numerize
+numpy
+pandas
+scikit-learn
+plotly
+regex
+streamlit-vertical-slider
+streamlit-toggle
+statsmodels
