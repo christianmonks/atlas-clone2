@@ -10,13 +10,22 @@ def render_power_analysis():
     It then runs the power analysis and displays the results.
     """
     
+    # Check if all required session state values exist
+    required_keys = [
+        "df", "kpi_df", "audience_column", "client_columns", "market_code", 'market_name',
+        "date_granularity", "cov_columns", "kpi_column", "feature_importance", "spend_cols"
+    ]
+    missing_keys = [key for key in required_keys if key not in st.session_state]
+    
+    if missing_keys:
+        st.error(f"Missing required session state variables: {', '.join(missing_keys)}")
+        st.info("Please initialize all required variables in the Command Center first.")
+        return
+    
     # Get required data from session state
     df, kpi_df, audience_columns, client_columns, market_code, market_name, \
     date_granularity, cov_columns, kpi_column, feature_importance, spend_cols = (
-        st.session_state[key] for key in [
-            "df", "kpi_df", "audience_column", "client_columns", "market_code", 'market_name',
-            "date_granularity", "cov_columns", "kpi_column", "feature_importance", "spend_cols"
-        ]
+        st.session_state[key] for key in required_keys
     )
 
     # Create columns for input parameters
