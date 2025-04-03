@@ -5,6 +5,8 @@ import plotly.express as px
 from scripts.constants import *
 from numerize import numerize
 
+
+
 def render_matched_markets():
     """
     Renders the matched markets UI and analysis in the Streamlit app.
@@ -12,32 +14,22 @@ def render_matched_markets():
     This function allows users to select tiers, exclude markets, and specify test markets for
     identifying similar matched markets. It aggregates key performance indicators (KPIs) for
     test and control markets and visualizes the matched market results.
+
+    Functionality:
+    - Users can filter markets based on tiers and specific market selections.
+    - The function calculates matched market pairs based on similarity indices.
+    - It generates scatter and line/bar plots for visualizing KPIs across matched markets.
     """
 
-    # Check if all required session state values exist
-    required_keys = ["mm1", "kpi_column", "market_level", "date_column", "market_code", "df", "kpi_df"]
-    missing_keys = [key for key in required_keys if key not in st.session_state]
-    
-    if missing_keys:
-        st.error(f"Missing required session state variables: {', '.join(missing_keys)}")
-        st.info("Please initialize all required variables in the Command Center first.")
-        return
-    
     # Extract required session state values
     mm1, kpi_column, market_level, date_column, market_code, df, kpi_df = (
-        st.session_state[key] for key in required_keys
+        st.session_state[key] for key in [
+            "mm1", "kpi_column", "market_level",
+            "date_column", "market_code", "df", "kpi_df"
+        ]
     )
 
-    # Check if mm1 is None or missing similar_markets attribute
-    if mm1 is None:
-        st.error("Market matching data is not initialized. Please run the analysis in the Command Center first.")
-        return
-    
-    try:
-        mm_df = mm1.similar_markets
-    except AttributeError:
-        st.error("Market matching data is not properly initialized. Please run the analysis in the Command Center first.")
-        return
+    mm_df = mm1.similar_markets
 
     # Create columns for user inputs
     col1, col2, col3, col4 = st.columns([1.1, 0.8, 0.8, 0.6], gap="small")
@@ -46,17 +38,17 @@ def render_matched_markets():
         tier_filter = st.multiselect(
             label="**Select Tiers for Identifying Similar Matched Markets**",
             options=sorted(list(set(mm_df[TIER]))),
-            default=sorted(list(set(mm_df[TIER])))[0] if sorted(list(set(mm_df[TIER]))) else None,
+            default=sorted(list(set(mm_df[TIER])))[0],
             help="Choose the tiers you want to use for identifying similar matched markets.",
         )
         # Create a mask for selected tiers
-        tier_mask = mm_df["KPI Tier"].isin(tier_filter) if tier_filter else mm_df["KPI Tier"].isin([])
+        tier_mask = mm_df["KPI Tier"].isin(tier_filter)
 
     with col2:
         # Select markets to exclude from the test
         market_removal = st.multiselect(
             label="**Select Markets to Exclude from Test**",
-            options=list(set(mm_df[tier_mask]["Test Market Name"])) if tier_filter else [],
+            options=list(set(mm_df[tier_mask]["Test Market Name"])),
             help="Choose markets that you want to exclude from matched market pairing.",
         )
         # Create a mask for removal of selected markets
@@ -67,7 +59,7 @@ def render_matched_markets():
         # Select specific test markets to include
         specific_markets = st.multiselect(
             label="**Select Specific Test Markets**",
-            options=list(set(mm_df[tier_mask & ~removal_mask]["Test Market Name"])) if tier_filter else [],
+            options=list(set(mm_df[tier_mask & ~removal_mask]["Test Market Name"])),
             help="Choose specific test markets to include for matched market pairing.",
         )
         # Create a mask for specific test markets
@@ -88,8 +80,10 @@ def render_matched_markets():
         )
 
     # Filter the dataframe based on selected filters
-    mm_df = mm_df[tier_mask & ~removal_mask & spec_mask] if tier_filter else pd.DataFrame()
+    mm_df = mm_df[tier_mask & ~removal_mask & spec_mask]
+    #col1, col2, col3 = st.columns([1, 5, 1], gap="medium")
 
+    #with col2:
     # If there are selected tiers, proceed with matching
     if len(tier_filter) > 0:
         counter = 0
@@ -117,7 +111,7 @@ def render_matched_markets():
             # Concatenate the matched markets to the resulting dataframe
             matched_df = pd.concat(
                 [matched_df, mm_df1[mm_df1["Rank"] == 1]], axis=0
-            ) if not mm_df1.empty else matched_df
+            )
 
             # Update utilized markets
             utilized_markets.extend(
@@ -147,7 +141,7 @@ def render_matched_markets():
                     "Control Market Name",
                     "Similarity Index",
                 ]
-            ].sort_values(by=TIER, ascending=True) if not matched_df.empty else pd.DataFrame(),
+            ].sort_values(by=TIER, ascending=True),
             hide_index=True,
             use_container_width=True,
         )
@@ -155,21 +149,25 @@ def render_matched_markets():
     st.write("")
     st.write("")
     
+
     try:
         st.session_state['matched_markets'] = matched_df
     except UnboundLocalError:
-        # handle the error
-        st.session_state['matched_markets'] = None  # or any default value
+        # manejar el error
+        st.session_state['matched_markets'] = None  # o cualquier valor predeterminado
         st.error("Please select tiers for identifying similar Matched Markets", icon="🚨")
 
     # If there are selected tiers, show the analysis
-    if len(tier_filter) > 0 and 'matched_markets' in st.session_state and st.session_state['matched_markets'] is not None:
+    if len(tier_filter) > 0:
         with st.expander("**Matched Markets Analysis**", expanded=True):
 
             col0, col1, col2, col3, col4 = st.columns([0.05, 0.5, 0.5, 0.5, 0.5], gap="medium")
 
             # Merge KPI data for comparison
             kpi_comp = kpi_df.merge(df[[market_code, TIER]], on=market_code)
+
+            print("Before grouping:")
+            print(kpi_comp.head())
             
             if is_numeric_dtype(kpi_df[kpi_column]):
                 # Aggregate KPI for test markets
@@ -242,14 +240,15 @@ def render_matched_markets():
                     control_data = control_data.head(min_length)
                     test_data = test_data.head(min_length)
 
-                correlation_value = control_data.corr(test_data) if not control_data.empty and not test_data.empty else 0
-                average_control = control_data.mean() if not control_data.empty else 0
-                formatted_average_control = numerize.numerize(average_control, 2)
-                average_test = test_data.mean() if not test_data.empty else 0
-                formatted_average_test = numerize.numerize(average_test, 2)
+                else:
+                    correlation_value = control_data.corr(test_data)
+                    average_control= control_data.mean()
+                    formatted_average_control = numerize.numerize(average_control, 2)
+                    average_test= test_data.mean()
+                    formatted_average_test = numerize.numerize(average_test, 2)
 
                 with col1:
-                    st.metric(label="KPI Name", value=kpi_column)  # Show the KPI name
+                    st.metric(label="KPI Name", value=kpi_column)  # Mostrar el nombre de la KPI        
             
                 with col2:
                     st.metric(label="Correlation: Test vs Control", value=f"{correlation_value:.2f}")
@@ -302,3 +301,5 @@ def render_matched_markets():
                     )
                     fig_comp.update_layout(width=800, height=500)
                     st.plotly_chart(fig_comp, theme="streamlit", use_container_width=True)
+
+                   

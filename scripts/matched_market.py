@@ -61,10 +61,10 @@ class MatchedMarketScoring:
         # Store input parameters
         self.target_variable = target_variable
         # Handle state level column names
-if 'State' in self.df.columns:
-    self.display_columns = [MARKET_COLUMN, 'State']
-else:
-    self.display_columns = display_columns
+        if 'State' in self.df.columns:
+            self.display_columns = [MARKET_COLUMN, 'State']
+        else:
+            self.display_columns = display_columns
         self.covariate_columns = covariate_columns
         self.audience_columns = audience_columns
         self.client_columns = client_columns
@@ -166,14 +166,14 @@ else:
         if x.empty or y.empty:
             print("-------- Empty feature matrix or target vector. Using default feature importance. --------")
             return {col: 1.0/len(self.model_columns) for col in self.model_columns}
-
+    
         param_grid = {
             "criterion": ["gini", "entropy"],  # Removed "log_loss" which might cause issues
             "max_depth": [3, 5, 7, 10],  # Simplified param grid
             "max_features": ["sqrt"],  # Removed None which might cause issues
             "n_estimators": [50, 100],  # Simplified param grid
         }
-
+    
         try:
             model = RandomForestClassifier(random_state=100)
             grid_search = GridSearchCV(
@@ -471,13 +471,13 @@ else:
                 try:
                     # Append the current market to the testing markets list
                     testing_markets.append(market)
-    
+
                     # Flatten the list of testing markets
                     geo_input = [item for sublist in testing_markets for item in sublist]
-    
+
                     # Filter the KPI data for the selected markets
                     geo_data = kpi_data[kpi_data['Market'].isin(geo_input)]
-    
+
                     if geo_data.empty:
                         print(f"-------- No KPI data for markets {geo_input}. --------")
                         continue
@@ -485,7 +485,7 @@ else:
                     # Calculate the mean and standard deviation for the KPI
                     kpi_mean = geo_data[self.kpi_column].mean()
                     kpi_std = geo_data[self.kpi_column].std()
-    
+
                     if kpi_mean == 0 or pd.isna(kpi_mean) or pd.isna(kpi_std):
                         print(f"-------- Invalid KPI statistics for markets {geo_input}. --------")
                         continue
@@ -553,7 +553,7 @@ else:
                 except Exception as e:
                     print(f"-------- Error processing market pair {market}: {str(e)} --------")
                     continue
-    
+
             # Convert results to DataFrame
             results_df = pd.DataFrame(results) if results else pd.DataFrame()
             
@@ -563,3 +563,24 @@ else:
         except Exception as e:
             print(f"-------- Error in power_analysis: {str(e)}. --------")
             return {'By Duration': pd.DataFrame()}
+
+
+def calculate_tier(pct_rank, num_tiers):
+    """
+    Calculate the tier based on percent rank and number of tiers.
+    
+    Args:
+        pct_rank (float): The percentage rank (0-1)
+        num_tiers (int): The number of tiers to divide into
+        
+    Returns:
+        str: The tier label (e.g., "Tier 1")
+    """
+    interval = 1 / num_tiers
+    thresholds = [interval * i for i in range(1, num_tiers)]
+    tiers = [f"Tier {i}" for i in range(num_tiers, 0, -1)]
+
+    for threshold, tier in zip(thresholds, tiers):
+        if pct_rank <= threshold:
+            return tier
+    return tiers[-1]

@@ -40,21 +40,19 @@ def render_tabs():
 
     # Tab 3: Render Market Rankings & Insights (only if 'mm' exists in session state)
     with tab3:
-        if 'mm' in st.session_state and st.session_state['mm'] is not None:
+        if 'mm' in st.session_state:
             render_market_ranking()
         else:
-            st.error("Please Return to the Command Center Tab and Upload Audience and KPI Data", icon="🚨")
+            st.error("Please Return to the Previous Tab and Upload Audience and KPI Data", icon="🚨")
 
-    # Tab 4: Render Matched Markets (only if required keys exist in session state)
+    # Tab 4: Render Matched Markets (only if 'mm' exists in session state)
     with tab4:
-        if 'mm' in st.session_state and 'mm1' in st.session_state and st.session_state['mm1'] is not None:
+        if 'mm' in st.session_state:
             render_matched_markets()
         else:
-            st.error("Please Return to the Command Center Tab and Upload Audience and KPI Data", icon="🚨")
-    
-    # Tab 5: Render Power Analysis (only if 'mm' exists in session state)
+            st.error("Please Return to the Previous Tab and Upload Audience and KPI Data", icon="🚨")
     with tab5:
-        if 'mm' in st.session_state and st.session_state['mm'] is not None:
+        if 'mm' in st.session_state:
             render_power_analysis()
         else:
-            st.error("Please Return to the Command Center Tab and Upload Audience and KPI Data", icon="🚨")
+            st.error("Please Return to the Previous Tab and Upload Audience and KPI Data", icon="🚨")

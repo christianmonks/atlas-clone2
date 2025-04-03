@@ -2,37 +2,17 @@ import streamlit as st
 from scripts.matched_market import MatchedMarketScoring
 
 def render_power_analysis():
-    """
-    Renders the Power Analysis tab content.
-    
-    This function allows users to specify parameters for power analysis including budget,
-    cost per incremental KPI, significance level, power level, and minimum detectable lift.
-    It then runs the power analysis and displays the results.
-    """
-    
-    # Check if all required session state values exist
-    required_keys = [
-        "df", "kpi_df", "audience_column", "client_columns", "market_code", 'market_name',
-        "date_granularity", "cov_columns", "kpi_column", "feature_importance", "spend_cols"
-    ]
-    missing_keys = [key for key in required_keys if key not in st.session_state]
-    
-    if missing_keys:
-        st.error(f"Missing required session state variables: {', '.join(missing_keys)}")
-        st.info("Please initialize all required variables in the Command Center first.")
-        return
-    
-    # Get required data from session state
+
     df, kpi_df, audience_columns, client_columns, market_code, market_name, \
     date_granularity, cov_columns, kpi_column, feature_importance, spend_cols = (
-        st.session_state[key] for key in required_keys
+        st.session_state[key] for key in [
+            "df", "kpi_df", "audience_column", "client_columns", "market_code", 'market_name',
+            "date_granularity", "cov_columns", "kpi_column", "feature_importance", "spend_cols"
+        ]
     )
 
-    # Create columns for input parameters
     col1, col2, col3, col4, col5 = st.columns([0.3, 0.3, 0.3, 0.3, 0.3], gap="small")
-    
     with col1:
-        # Budget input
         budget = st.number_input(
             "**Budget**",
             min_value=0,
@@ -40,19 +20,15 @@ def render_power_analysis():
             value=0,
             help="Total budget allocated for the test.",
         )
-        
     with col2:
-        # Cost per incremental KPI input
-        cost = st.number_input(
-            "**CPIK**",
-            min_value=0.0,
-            max_value=1000.0,
-            value=1.0,
-            help="Cost per incremental unit of KPI.",
-        )
-        
+            cost = st.number_input(
+                "**CPIK**",
+                min_value=0.0,
+                max_value=1000.0,
+                value=1.0,
+                help="Cost per incremental unit of KPI.",
+            )
     with col3:
-        # Significance level input
         alpha = st.number_input(
             "**Significance Level**",
             min_value=0.0,
@@ -60,9 +36,7 @@ def render_power_analysis():
             value=0.1,
             help="Significance level (alpha). This determines the threshold for statistical significance.",
         )
-        
     with col4:
-        # Power level input
         power = st.number_input(
             "**Power Level**",
             min_value=0.0,
@@ -70,59 +44,50 @@ def render_power_analysis():
             value=0.8,
             help="Statistical power level. This is the probability of correctly rejecting a false null hypothesis.",
         )
-        
     with col5:
-        # Minimum detectable lift selection
         lift = st.selectbox(
             "**Minimum Detectable lift**",
             options=['15%', '10%', '5%'],
             help="Minimum lift that can be detected by the test.",
         )
 
-    # Add spacing
     st.write("")
     st.write("")
-    
-    # Run power analysis button
     bt_run_power_analysis = st.button(label="**Confirm and Run Power Analysis 🏃‍➡**")
-    
     if bt_run_power_analysis:
-        with st.spinner(text="Running Power Analysis..."):
-            # Check if matched markets are available
-            if 'matched_markets' not in st.session_state or st.session_state['matched_markets'] is None:
-                st.error("No matched markets available. Please run the Matched Markets analysis first.", icon="🚨")
-            else:
-                # Run power analysis
-                mm2 = MatchedMarketScoring(
-                    df=df,
-                    kpi_df=kpi_df,
-                    audience_columns=audience_columns,
-                    client_columns=client_columns,
-                    display_columns=[market_code, market_name],
-                    covariate_columns=cov_columns,
-                    market_column=market_code,
-                    date_granularity=date_granularity,
-                    kpi_column=kpi_column,
-                    feature_importance=feature_importance,
-                    scoring_removed_columns=spend_cols,
-                    power_analysis_parameters={
-                        'Alpha': alpha,
-                        'Power': power,
-                        'Lifts': [int(lift.replace('%', ''))]
-                    },
-                    power_analysis_inputs={
-                        'Cost': cost,
-                        'Budget': budget
-                    },
-                    run_model=False
-                )
+        with st.spinner(
+            text="Running Power Analysis..."
+        ):
+            mm2 = MatchedMarketScoring(
+                df=df,
+                kpi_df=kpi_df,
+                audience_columns=audience_columns,
+                client_columns=client_columns,
+                display_columns=[market_code, market_name],
+                covariate_columns=cov_columns,
+                market_column=market_code,
+                date_granularity=date_granularity,
+                kpi_column=kpi_column,
+                feature_importance=feature_importance,
+                scoring_removed_columns=spend_cols,
+                power_analysis_parameters={
+                    'Alpha': alpha,
+                    'Power': power,
+                    'Lifts': [int(lift.replace('%', ''))]
+                },
+                power_analysis_inputs={
+                    'Cost': cost,
+                    'Budget': budget
+                },
+                run_model=False
+            )
 
-                # Display results
-                if len(mm2.power_analysis_results.get('By Duration', [])) > 0:
-                    st.dataframe(
-                        mm2.power_analysis_results.get('By Duration'),
-                        hide_index=True,
-                        use_container_width=True
-                    )
-                else:
-                    st.error("No feasible solution found. Consider increasing the budget.", icon="🚨")
+            # Display options
+            if len(mm2.power_analysis_results.get('By Duration')) > 0:
+                st.dataframe(
+                    mm2.power_analysis_results.get('By Duration'),
+                    hide_index=True,
+                    use_container_width=True
+                )
+            else:
+                st.error("No feasible solution found. Considering increasing the budget.", icon="🚨")

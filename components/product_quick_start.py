@@ -109,6 +109,7 @@ def render_product_quick_start():
         audience_data = pd.DataFrame({
             "Market": ["FL", "GA", "HI", "ID"],
             "CLIENT_Media_Spend": [34555, 334565, 22345, 23443],
+            #"AUDIENCE_F35+": [66998, 3456602, 200045, 160320]
         })
         st.dataframe(audience_data, use_container_width=False, hide_index=True)
 
@@ -117,5 +118,6 @@ def render_product_quick_start():
         audience_metrics_data = pd.DataFrame({
             "Market": [500, 501, 502, 503],
             "CLIENT_Media_Spend": [98979, 2457307, 36390, 75838],
+            #"AUDIENCE_F35+": [323977, 6255895, 100076, 190420]
         })
         st.dataframe(audience_metrics_data, use_container_width=False, hide_index=True)
