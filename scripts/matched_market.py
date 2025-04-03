@@ -60,7 +60,11 @@ class MatchedMarketScoring:
 
         # Store input parameters
         self.target_variable = target_variable
-        self.display_columns = display_columns
+        # Handle state level column names
+if 'State' in self.df.columns:
+    self.display_columns = [MARKET_COLUMN, 'State']
+else:
+    self.display_columns = display_columns
         self.covariate_columns = covariate_columns
         self.audience_columns = audience_columns
         self.client_columns = client_columns
