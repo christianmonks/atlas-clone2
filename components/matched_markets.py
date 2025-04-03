@@ -14,12 +14,18 @@ def render_matched_markets():
     test and control markets and visualizes the matched market results.
     """
 
+    # Check if all required session state values exist
+    required_keys = ["mm1", "kpi_column", "market_level", "date_column", "market_code", "df", "kpi_df"]
+    missing_keys = [key for key in required_keys if key not in st.session_state]
+    
+    if missing_keys:
+        st.error(f"Missing required session state variables: {', '.join(missing_keys)}")
+        st.info("Please initialize all required variables in the Command Center first.")
+        return
+    
     # Extract required session state values
     mm1, kpi_column, market_level, date_column, market_code, df, kpi_df = (
-        st.session_state[key] for key in [
-            "mm1", "kpi_column", "market_level",
-            "date_column", "market_code", "df", "kpi_df"
-        ]
+        st.session_state[key] for key in required_keys
     )
 
     mm_df = mm1.similar_markets

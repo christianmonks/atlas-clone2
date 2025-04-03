@@ -45,9 +45,9 @@ def render_tabs():
         else:
             st.error("Please Return to the Previous Tab and Upload Audience and KPI Data", icon="🚨")
 
-    # Tab 4: Render Matched Markets (only if 'mm' exists in session state)
+    # Tab 4: Render Matched Markets (only if required keys exist in session state)
     with tab4:
-        if 'mm' in st.session_state:
+        if 'mm' in st.session_state and 'mm1' in st.session_state:
             render_matched_markets()
         else:
             st.error("Please Return to the Previous Tab and Upload Audience and KPI Data", icon="🚨")
