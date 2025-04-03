@@ -28,7 +28,16 @@ def render_matched_markets():
         st.session_state[key] for key in required_keys
     )
 
-    mm_df = mm1.similar_markets
+    # Check if mm1 is None or missing similar_markets attribute
+    if mm1 is None:
+        st.error("Market matching data is not initialized. Please run the analysis in the Command Center first.")
+        return
+    
+    try:
+        mm_df = mm1.similar_markets
+    except AttributeError:
+        st.error("Market matching data is not properly initialized. Please run the analysis in the Command Center first.")
+        return
 
     # Create columns for user inputs
     col1, col2, col3, col4 = st.columns([1.1, 0.8, 0.8, 0.6], gap="small")
